@@ -4,6 +4,7 @@ import {
   Args,
   Parent,
   ResolveField,
+  PartialType,
 } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { Auth } from './models/auth.model';
@@ -45,8 +46,8 @@ export class AuthResolver {
     return this.auth.refreshToken(token);
   }
 
-  @ResolveField('user', () => User)
+  @ResolveField('user', () => PartialType(User))
   async user(@Parent() auth: Auth) {
-    return await this.auth.getUserFromToken(auth.accessToken);
+    return this.auth.getUserFromToken(auth.accessToken);
   }
 }

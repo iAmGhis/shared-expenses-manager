@@ -15,57 +15,56 @@ import { PaginationArgs } from 'src/common/pagination/pagination.args';
 import { UserEntity } from 'src/common/decorators/user.decorator';
 import { User } from 'src/users/models/user.model';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
-import { PostIdArgs } from './args/post-id.args';
+import { BoardIdArgs } from './args/board-id.args';
 import { UserIdArgs } from './args/user-id.args';
-import { Post } from './models/post.model';
-import { PostConnection } from './models/post-connection.model';
-import { PostOrder } from './dto/post-order.input';
-import { CreatePostInput } from './dto/createPost.input';
+import { Board } from './models/board.model';
+import { BoardConnection } from './models/board-connection.model';
+import { BoardsOrder } from './dto/board-order.input';
+import { CreateBoardInput } from './dto/createBoard.input';
 
 const pubSub = new PubSub();
 
-@Resolver(() => Post)
-export class PostsResolver {
+@Resolver(() => Board)
+export class BoardsResolver {
   constructor(private prisma: PrismaService) {}
 
-  @Subscription(() => Post)
-  postCreated() {
-    return pubSub.asyncIterator('postCreated');
+  @Subscription(() => Board)
+  boardCreated() {
+    return pubSub.asyncIterator('boardCreated');
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => Post)
-  async createPost(
+  @Mutation(() => Board)
+  async createBoard(
     @UserEntity() user: User,
-    @Args('data') data: CreatePostInput
+    @Args('data') data: CreateBoardInput
   ) {
-    const newPost = this.prisma.post.create({
+    const newBoard = this.prisma.board.create({
       data: {
         published: true,
         title: data.title,
-        content: data.content,
         authorId: user.id,
       },
     });
-    pubSub.publish('postCreated', { postCreated: newPost });
-    return newPost;
+    pubSub.publish('boardCreated', { boardCreated: newBoard });
+    return newBoard;
   }
 
-  @Query(() => PostConnection)
-  async publishedPosts(
+  @Query(() => BoardConnection)
+  async publishedBoards(
     @Args() { after, before, first, last }: PaginationArgs,
     @Args({ name: 'query', type: () => String, nullable: true })
     query: string,
     @Args({
       name: 'orderBy',
-      type: () => PostOrder,
+      type: () => BoardsOrder,
       nullable: true,
     })
-    orderBy: PostOrder
+    orderBy: BoardsOrder
   ) {
     const a = await findManyCursorConnection(
       (args) =>
-        this.prisma.post.findMany({
+        this.prisma.board.findMany({
           include: { author: true },
           where: {
             published: true,
@@ -75,7 +74,7 @@ export class PostsResolver {
           ...args,
         }),
       () =>
-        this.prisma.post.count({
+        this.prisma.board.count({
           where: {
             published: true,
             title: { contains: query || '' },
@@ -86,28 +85,20 @@ export class PostsResolver {
     return a;
   }
 
-  @Query(() => [Post])
-  userPosts(@Args() id: UserIdArgs) {
+  @Query(() => [Board])
+  userBoards(@Args() id: UserIdArgs) {
     return this.prisma.user
       .findUnique({ where: { id: id.userId } })
-      .posts({ where: { published: true } });
-
-    // or
-    // return this.prisma.posts.findMany({
-    //   where: {
-    //     published: true,
-    //     author: { id: id.userId }
-    //   }
-    // });
+      .boards({ where: { published: true } });
   }
 
-  @Query(() => Post)
-  async post(@Args() id: PostIdArgs) {
-    return this.prisma.post.findUnique({ where: { id: id.postId } });
+  @Query(() => Board)
+  async board(@Args() id: BoardIdArgs) {
+    return this.prisma.board.findUnique({ where: { id: id.boardId } });
   }
 
   @ResolveField('author', () => User)
-  async author(@Parent() post: Post) {
-    return this.prisma.post.findUnique({ where: { id: post.id } }).author();
+  async author(@Parent() board: Board) {
+    return this.prisma.board.findUnique({ where: { id: board.id } }).author();
   }
 }

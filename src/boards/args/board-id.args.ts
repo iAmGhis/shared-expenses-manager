@@ -2,7 +2,7 @@ import { ArgsType } from '@nestjs/graphql';
 import { IsNotEmpty } from 'class-validator';
 
 @ArgsType()
-export class PostIdArgs {
+export class BoardIdArgs {
   @IsNotEmpty()
-  postId: string;
+  boardId: string;
 }

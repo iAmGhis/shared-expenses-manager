@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   await prisma.user.deleteMany();
-  await prisma.post.deleteMany();
+  await prisma.board.deleteMany();
 
   console.log('Seeding...');
 
@@ -15,10 +15,9 @@ async function main() {
       lastname: 'Simpson',
       password: '$2b$10$EpRnTzVlqHNP0.fUbXUwSOyuiXe/QLSUG6xNekdHgTGmrpHEfIoxm', // secret42
       role: 'USER',
-      posts: {
+      boards: {
         create: {
-          title: 'Join us for Prisma Day 2019 in Berlin',
-          content: 'https://www.prisma.io/day/',
+          title: 'Coloc',
           published: true,
         },
       },
@@ -31,16 +30,14 @@ async function main() {
       lastname: 'Simpson',
       role: 'ADMIN',
       password: '$2b$10$EpRnTzVlqHNP0.fUbXUwSOyuiXe/QLSUG6xNekdHgTGmrpHEfIoxm', // secret42
-      posts: {
+      boards: {
         create: [
           {
-            title: 'Subscribe to GraphQL Weekly for community news',
-            content: 'https://graphqlweekly.com/',
+            title: 'Holiday',
             published: true,
           },
           {
-            title: 'Follow Prisma on Twitter',
-            content: 'https://twitter.com/prisma',
+            title: 'Office',
             published: false,
           },
         ],

@@ -7,12 +7,12 @@ import { AppService } from './app.service';
 import { AppResolver } from './app.resolver';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
-import { PostsModule } from 'src/posts/posts.module';
+import { BoardsModule } from 'src/boards/boards.module';
 import config from 'src/common/configs/config';
 import { loggingMiddleware } from 'src/common/middleware/logging.middleware';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GqlConfigService } from './gql-config.service';
-
+import { ExpensesModule } from './expenses/expenses.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
@@ -30,7 +30,8 @@ import { GqlConfigService } from './gql-config.service';
 
     AuthModule,
     UsersModule,
-    PostsModule,
+    BoardsModule,
+    ExpensesModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],

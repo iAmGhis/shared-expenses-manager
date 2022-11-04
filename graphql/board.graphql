@@ -1,0 +1,54 @@
+query UserBoards {
+  userBoards(userId: "USER_ID") {
+    ...BoardData
+  }
+}
+
+query PublishedBoardsConnection {
+  publishedBoards(first: 20, orderBy: { field: title, direction: desc }) {
+    totalCount
+    edges {
+      cursor
+      node {
+        ...BoardData
+        author {
+          ...UserData
+        }
+      }
+    }
+    pageInfo {
+      startCursor
+      endCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+
+mutation CreateBoard {
+  createBoard(data: { title: "New Board" }) {
+    ...BoardData
+  }
+}
+
+subscription SubscriptionBoard {
+  boardCreated {
+    ...BoardData
+  }
+}
+
+fragment BoardData on Board {
+  id
+  createdAt
+  updatedAt
+  published
+  title
+}
+
+fragment UserData on User {
+  id
+  email
+  firstname
+  lastname
+  role
+}
