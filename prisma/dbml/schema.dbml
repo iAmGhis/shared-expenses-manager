@@ -12,6 +12,8 @@ Table User {
   lastname String
   boards Board [not null]
   role Role [not null]
+  Expense Expense [not null]
+  ExpenseDetails ExpenseDetails [not null]
 }
 
 Table Board {
@@ -22,6 +24,32 @@ Table Board {
   title String [not null]
   author User
   authorId String
+  currency Currency [not null]
+}
+
+Table Expense {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  title String [not null]
+  author User
+  authorId String
+  totalAmount Int [not null]
+  ExpenseDetails ExpenseDetails [not null]
+}
+
+Table ExpenseDetails {
+  expense Expense [not null]
+  expenseId String [not null]
+  userId String [not null]
+  user User [not null]
+  amount Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (expenseId, userId) [pk]
+  }
 }
 
 Enum Role {
@@ -29,4 +57,20 @@ Enum Role {
   USER
 }
 
+Enum Currency {
+  EUR
+  USD
+  CNY
+  HKD
+  SGD
+  TWD
+  GBP
+}
+
 Ref: Board.authorId > User.id
+
+Ref: Expense.authorId > User.id
+
+Ref: ExpenseDetails.expenseId > Expense.id
+
+Ref: ExpenseDetails.userId > User.id

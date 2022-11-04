@@ -1,9 +1,9 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType, Field, PartialType, PickType } from '@nestjs/graphql';
+import { ApiProperty } from '@nestjs/swagger';
+import { SignupInput } from 'src/auth/dto/signup.input';
 
 @InputType()
-export class UpdateUserInput {
-  @Field({ nullable: true })
-  firstname?: string;
-  @Field({ nullable: true })
-  lastname?: string;
-}
+export class UpdateUserInput extends PickType(SignupInput, [
+  'firstname',
+  'lastname',
+] as const) {}

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { BoardsResolver } from './boards.resolver';
+import { BoardsService } from './boards.service';
+import { BoardsController } from './boards.controller';
 
 @Module({
-  imports: [],
-  providers: [BoardsResolver],
+  controllers: [BoardsController],
+  providers: [BoardsService]
 })
 export class BoardsModule {}

@@ -1,14 +1,10 @@
 import 'reflect-metadata';
-import {
-  ObjectType,
-  registerEnumType,
-  HideField,
-  Field,
-} from '@nestjs/graphql';
+import { ObjectType, registerEnumType } from '@nestjs/graphql';
 import { IsEmail } from 'class-validator';
-import { Board } from 'src/boards/models/board.model';
+// import { Board } from 'src/boards/models/board.model';
 import { BaseModel } from 'src/common/models/base.model';
 import { Role } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
 registerEnumType(Role, {
   name: 'Role',
@@ -17,22 +13,24 @@ registerEnumType(Role, {
 
 @ObjectType()
 export class User extends BaseModel {
-  @Field()
+  @ApiProperty({ type: () => String, nullable: true })
   @IsEmail()
   email: string;
 
-  @Field(() => String, { nullable: true })
+  @ApiProperty({ type: () => String, nullable: true })
   firstname?: string;
 
-  @Field(() => String, { nullable: true })
+  @ApiProperty({ type: () => String, nullable: true })
   lastname?: string;
 
-  @Field(() => Role)
+  // TODO: infer type cause circular dependency
+  @ApiProperty()
   role: Role;
 
-  @Field(() => [Board], { nullable: true })
-  boards?: [Board] | null;
+  // @Field(() => [Board], { nullable: true })
+  // boards?: [Board] | null;
 
-  @HideField()
+  // TODO: hide from response
+  @ApiProperty({ type: () => String, nullable: true })
   password: string;
 }

@@ -13,15 +13,22 @@ generator dbml {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  email     String   @unique
-  password  String
-  firstname String?
-  lastname  String?
-  boards     Board[]
-  role      Role
+  id             String           @id @default(cuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  email          String           @unique
+  password       String
+  firstname      String?
+  lastname       String?
+  boards         Board[]
+  role           Role
+  Expense        Expense[]
+  ExpenseDetails ExpenseDetails[]
+}
+
+enum Role {
+  ADMIN
+  USER
 }
 
 model Board {
@@ -32,9 +39,38 @@ model Board {
   title     String
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  String?
+  currency  Currency
 }
 
-enum Role {
-  ADMIN
-  USER
+enum Currency {
+  EUR
+  USD
+  CNY
+  HKD
+  SGD
+  TWD
+  GBP
+}
+
+model Expense {
+  id             String           @id @default(cuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  title          String
+  author         User?            @relation(fields: [authorId], references: [id])
+  authorId       String?
+  totalAmount    Int
+  ExpenseDetails ExpenseDetails[]
+}
+
+model ExpenseDetails {
+  expense   Expense  @relation(fields: [expenseId], references: [id])
+  expenseId String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([expenseId, userId])
 }

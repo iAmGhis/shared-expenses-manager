@@ -3,59 +3,14 @@
 # ------------------------------------------------------
 
 type Auth {
-  """JWT access token"""
-  accessToken: JWT!
-
-  """JWT refresh token"""
-  refreshToken: JWT!
+  accessToken: String!
+  refreshToken: String!
   user: User!
-}
-
-type Board {
-  author: User
-
-  """Identifies the date and time when the object was created."""
-  createdAt: DateTime!
-  id: ID!
-  published: Boolean!
-  title: String!
-
-  """Identifies the date and time when the object was last updated."""
-  updatedAt: DateTime!
-}
-
-type BoardConnection {
-  edges: [BoardEdge!]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BoardEdge {
-  cursor: String!
-  node: Board!
-}
-
-"""Properties by which boards connections can be ordered."""
-enum BoardOrderField {
-  createdAt
-  id
-  published
-  title
-  updatedAt
-}
-
-input BoardsOrder {
-  direction: OrderDirection!
-  field: BoardOrderField!
 }
 
 input ChangePasswordInput {
   newPassword: String!
   oldPassword: String!
-}
-
-input CreateBoardInput {
-  title: String!
 }
 
 """
@@ -75,35 +30,14 @@ input LoginInput {
 
 type Mutation {
   changePassword(data: ChangePasswordInput!): User!
-  createBoard(data: CreateBoardInput!): Board!
   login(data: LoginInput!): Auth!
   refreshToken(token: JWT!): Token!
   signup(data: SignupInput!): Auth!
   updateUser(data: UpdateUserInput!): User!
 }
 
-"""
-Possible directions in which to order a list of items when provided an `orderBy` argument.
-"""
-enum OrderDirection {
-  asc
-  desc
-}
-
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
 type Query {
-  board(boardId: String!): Board!
-  hello(name: String!): String!
-  helloWorld: String!
   me: User!
-  publishedBoards(after: String, before: String, first: Int, last: Int, orderBy: BoardsOrder, query: String, skip: Int): BoardConnection!
-  userBoards(userId: String!): [Board!]!
 }
 
 """User role"""
@@ -119,16 +53,9 @@ input SignupInput {
   password: String!
 }
 
-type Subscription {
-  boardCreated: Board!
-}
-
 type Token {
-  """JWT access token"""
-  accessToken: JWT!
-
-  """JWT refresh token"""
-  refreshToken: JWT!
+  accessToken: String!
+  refreshToken: String!
 }
 
 input UpdateUserInput {
@@ -137,8 +64,6 @@ input UpdateUserInput {
 }
 
 type User {
-  boards: [Board!]
-
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
   email: String!
