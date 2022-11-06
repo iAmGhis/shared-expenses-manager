@@ -99,7 +99,7 @@ export class AuthService {
   }
 
   private generateAccessToken(payload: { userId: string }): string {
-    return this.jwtService.sign(payload, { expiresIn: '10m' });
+    return this.jwtService.sign(payload, { expiresIn: '24h' });
   }
 
   private generateRefreshToken(payload: { userId: string }): string {

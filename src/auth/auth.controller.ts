@@ -1,6 +1,4 @@
 import { Controller, Body, Post } from '@nestjs/common';
-import { Parent } from '@nestjs/graphql';
-import { User } from 'src/users/models/user.model';
 
 import { AuthService } from './auth.service';
 import { LoginInput } from './dto/login.input';

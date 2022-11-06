@@ -12,7 +12,7 @@ import { Token } from './models/token.model';
 import { LoginInput } from './dto/login.input';
 import { SignupInput } from './dto/signup.input';
 import { RefreshTokenInput } from './dto/refresh-token.input';
-import { User } from 'src/users/models/user.model';
+import { UserModel } from 'src/users/models/user.model';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -46,7 +46,7 @@ export class AuthResolver {
     return this.auth.refreshToken(token);
   }
 
-  @ResolveField('user', () => PartialType(User))
+  @ResolveField('user', () => PartialType(UserModel))
   async user(@Parent() auth: Auth) {
     return this.auth.getUserFromToken(auth.accessToken);
   }

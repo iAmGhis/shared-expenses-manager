@@ -20,10 +20,12 @@ model User {
   password       String
   firstname      String?
   lastname       String?
-  boards         Board[]
+  boards         Board[]          @relation("participants")
   role           Role
-  Expense        Expense[]
-  ExpenseDetails ExpenseDetails[]
+  expense        Expense[]
+  expenseDetails ExpenseDetails[]
+  board          Board[]
+  paidBy         Expense[]        @relation("paidBy")
 }
 
 enum Role {
@@ -40,6 +42,8 @@ model Board {
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  String?
   currency  Currency
+  users     User[]   @relation("participants")
+  expenses  Expense[]
 }
 
 enum Currency {
@@ -60,17 +64,20 @@ model Expense {
   author         User?            @relation(fields: [authorId], references: [id])
   authorId       String?
   totalAmount    Int
-  ExpenseDetails ExpenseDetails[]
+  breakdown      ExpenseDetails[]
+  board          Board?            @relation(fields: [boardId], references: [id])
+  boardId        String? 
+  paidBy         User              @relation(fields: [paidById], references: [id], name:"paidBy")
+  paidById       String
 }
 
 model ExpenseDetails {
-  expense   Expense  @relation(fields: [expenseId], references: [id])
+  id        String           @id @default(cuid())
+  expense   Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   expenseId String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  paidForId    String
+  paidFor      User     @relation(fields: [paidForId], references: [id])
   amount    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@id([expenseId, userId])
 }

@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { User } from './models/user.model';
+import { UserModel } from './models/user.model';
 import { UsersService } from './users.service';
 
 @ApiBearerAuth()
@@ -12,7 +12,7 @@ import { UsersService } from './users.service';
 export class UserController {
   constructor(private readonly userService: UsersService) {}
   @Get('me')
-  async me(@Request() req): Promise<User> {
+  async me(@Request() req): Promise<UserModel> {
     return req.user;
   }
 

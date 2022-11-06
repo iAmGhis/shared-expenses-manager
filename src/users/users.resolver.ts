@@ -11,11 +11,11 @@ import { UseGuards } from '@nestjs/common';
 import { UserEntity } from 'src/common/decorators/user.decorator';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { UsersService } from './users.service';
-import { User } from './models/user.model';
+import { UserModel } from './models/user.model';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
 
-@Resolver(() => User)
+@Resolver(() => UserModel)
 @UseGuards(GqlAuthGuard)
 export class UsersResolver {
   constructor(
@@ -23,24 +23,24 @@ export class UsersResolver {
     private prisma: PrismaService
   ) {}
 
-  @Query(() => User)
-  async me(@UserEntity() user: User): Promise<User> {
+  @Query(() => UserModel)
+  async me(@UserEntity() user: UserModel): Promise<UserModel> {
     return user;
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => User)
+  @Mutation(() => UserModel)
   async updateUser(
-    @UserEntity() user: User,
+    @UserEntity() user: UserModel,
     @Args('data') newUserData: UpdateUserInput
   ) {
     return this.usersService.updateUser(user.id, newUserData);
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => User)
+  @Mutation(() => UserModel)
   async changePassword(
-    @UserEntity() user: User,
+    @UserEntity() user: UserModel,
     @Args('data') changePassword: ChangePasswordInput
   ) {
     return this.usersService.changePassword(
