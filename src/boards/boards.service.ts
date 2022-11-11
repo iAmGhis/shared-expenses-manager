@@ -3,7 +3,9 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ExpenseDetails } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
+import { ExpenseEntity } from 'src/expenses/entities/expense.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardEntity } from './entities/board.entity';
@@ -82,7 +84,7 @@ export class BoardsService {
     } else {
       boardData = await this.prisma.board.findUnique({
         where: {
-          id: board as string,
+          id: board,
         },
         include: { users: { select: { id: true } } },
       });
@@ -111,17 +113,11 @@ export class BoardsService {
     return board;
   }
 
-  async computeDebts(boardId: string) {
+  computeDebts(
+    allExpenses: (ExpenseEntity & { breakdown: ExpenseDetails[] })[]
+  ) {
     // TODO: ideally run that as a trigger and save data somewhere in our db
-    const allExpenses = await this.prisma.expense.findMany({
-      where: {
-        boardId,
-      },
-      include: { breakdown: true },
-    });
-
     const allDebts = {};
-
     // Calculate balance for everyone
     allExpenses.forEach((expense) => {
       expense.breakdown.forEach((expenseUserItem) => {
@@ -136,47 +132,45 @@ export class BoardsService {
         else allDebts[expense.paidById] = expenseUserItem.amount;
       });
     });
-    // return allDebts;
+    return allDebts;
+  }
 
-    // Look who is a giver and who is a receiver
-    const giver = Object.keys(allDebts).reduce((a, b) =>
-      allDebts[a] < allDebts[b] ? a : b
-    );
-    const receiver = Object.keys(allDebts).reduce((a, b) =>
-      allDebts[a] > allDebts[b] ? a : b
-    );
-
+  calculBestTransfers(debts: { [key: string]: number }) {
     const transfers = {};
 
-    console.log('All debts first', allDebts);
-
-    // FIXME: infinite loop
     // Looping as long as all the debts haven't been settled
-    while (Object.values(allDebts).some((debt) => debt > 0)) {
-      console.log('All debts beg while', allDebts);
+    while (Object.values(debts).some((debt) => debt > 0)) {
+      // Look who is a giver and who is a receiver
+      const giver = Object.keys(debts).reduce((a, b) =>
+        debts[a] < debts[b] ? a : b
+      );
+      const receiver = Object.keys(debts).reduce((a, b) =>
+        debts[a] > debts[b] ? a : b
+      );
+
       // If debt receiver is supposed to receive is less or equal than what the giver needs to reimburse
-      if (allDebts[receiver] <= -allDebts[giver]) {
-        const amountTransfered = allDebts[receiver];
+      if (debts[receiver] <= -debts[giver]) {
+        const amountTransfered = debts[receiver];
         transfers[giver] = {
           ...transfers[giver],
           [receiver]: amountTransfered,
         };
-        allDebts[receiver] -= amountTransfered;
-        allDebts[giver] += amountTransfered;
+        debts[receiver] -= amountTransfered;
+        debts[giver] += amountTransfered;
       }
       // If debt receiver is supposed to receive more than what the giver needs to reimburse, we take giver amoutn
       else {
-        const amountTransfered = allDebts[giver];
+        const amountTransfered = -debts[giver];
         transfers[giver] = {
           ...transfers[giver],
           [receiver]: amountTransfered,
         };
-        allDebts[receiver] -= amountTransfered;
-        allDebts[giver] += amountTransfered;
+        debts[receiver] -= amountTransfered;
+        debts[giver] += amountTransfered;
       }
-
-      console.log('All debts end while', allDebts);
     }
+    console.info('Transfers', transfers);
+    console.info('Final Debts', debts);
 
     return transfers;
   }

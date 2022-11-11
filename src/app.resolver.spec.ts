@@ -18,7 +18,7 @@ describe('AppResolver', () => {
 
   describe('helloWorld', () => {
     it('should return "Hello World!"', () => {
-      // expect(appResolver.helloWorld()).toBe('Hello World!');
+      // expect(appResolver.()).toBe('Hello World!');
     });
   });
   describe('hello', () => {

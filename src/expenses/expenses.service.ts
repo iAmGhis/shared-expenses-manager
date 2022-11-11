@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { BoardsService } from 'src/boards/boards.service';
-import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 
 @Injectable()
@@ -44,11 +43,12 @@ export class ExpensesService {
     });
   }
 
-  findAllOneBoard(boardId) {
+  findAllOneBoard(boardId, populateBreakdown?: boolean) {
     return this.prisma.expense.findMany({
       where: {
         boardId: boardId,
       },
+      include: { breakdown: populateBreakdown },
     });
   }
 

@@ -16,6 +16,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { ExpensesService } from 'src/expenses/expenses.service';
 import { BoardsService } from './boards.service';
 import { AddParticipantsDto } from './dto/add-participants.dto';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -26,7 +27,10 @@ import { BoardEntity } from './entities/board.entity';
 @UseGuards(AuthGuard('jwt'))
 @Controller('boards')
 export class BoardsController {
-  constructor(private readonly boardsService: BoardsService) {}
+  constructor(
+    private readonly boardsService: BoardsService,
+    private readonly expensesService: ExpensesService
+  ) {}
 
   @Post()
   @ApiCreatedResponse({ type: BoardEntity })
@@ -47,8 +51,9 @@ export class BoardsController {
   }
 
   @Get(':id/debts')
-  computeDebts(@Param('id') id: string) {
-    return this.boardsService.computeDebts(id);
+  async computeDebts(@Param('id') id: string) {
+    const expenses = await this.expensesService.findAllOneBoard(id, true);
+    return this.boardsService.computeDebts(expenses);
   }
 
   @Patch(':id')
