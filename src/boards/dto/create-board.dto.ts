@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 import { Currency } from '@prisma/client';
-import { UserModel } from 'src/users/models/user.model';
 
 export class CreateBoardDto {
   @IsNotEmpty()

@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { UserModel } from './models/user.model';
+import { UserModel } from './entities/user.entity';
 import { UsersService } from './users.service';
 
 @ApiBearerAuth()

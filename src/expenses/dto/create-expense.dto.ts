@@ -45,7 +45,7 @@ export function IsEqualToBreakdowSum(
   property: string,
   options?: ValidationOptions
 ) {
-  return (object: Object, propertyName: string) => {
+  return (object: Record<string, any>, propertyName: string) => {
     registerDecorator({
       name: 'isEqualToBreakdowSum',
       target: object.constructor,

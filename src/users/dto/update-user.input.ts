@@ -1,5 +1,4 @@
-import { InputType, Field, PartialType, PickType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
+import { InputType, PickType } from '@nestjs/graphql';
 import { SignupInput } from 'src/auth/dto/signup.input';
 
 @InputType()
