@@ -13,29 +13,71 @@ generator dbml {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  email     String   @unique
-  password  String
-  firstname String?
-  lastname  String?
-  posts     Post[]
-  role      Role
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean
-  title     String
-  content   String?
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  String?
+  id             String           @id @default(cuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  email          String           @unique
+  password       String
+  firstname      String?
+  lastname       String?
+  boards         Board[]          @relation("participants")
+  role           Role
+  expense        Expense[]
+  expenseDetails ExpenseDetails[]
+  board          Board[]
+  paidBy         Expense[]        @relation("paidBy")
 }
 
 enum Role {
   ADMIN
   USER
+}
+
+model Board {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  String?
+  currency  Currency
+  users     User[]   @relation("participants")
+  expenses  Expense[]
+}
+
+enum Currency {
+  EUR
+  USD
+  CNY
+  HKD
+  SGD
+  TWD
+  GBP
+}
+
+model Expense {
+  id             String           @id @default(cuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  title          String
+  author         User?            @relation(fields: [authorId], references: [id])
+  authorId       String?
+  totalAmount    Int
+  breakdown      ExpenseDetails[]
+  board          Board?            @relation(fields: [boardId], references: [id])
+  boardId        String? 
+  paidBy         User              @relation(fields: [paidById], references: [id], name:"paidBy")
+  paidById       String
+}
+
+model ExpenseDetails {
+  id        String           @id @default(cuid())
+  expense   Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  expenseId String
+  paidForId    String
+  paidFor      User     @relation(fields: [paidForId], references: [id])
+  amount    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

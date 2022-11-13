@@ -3,22 +3,14 @@
 # ------------------------------------------------------
 
 type Auth {
-  """JWT access token"""
-  accessToken: JWT!
-
-  """JWT refresh token"""
-  refreshToken: JWT!
+  accessToken: String!
+  refreshToken: String!
   user: User!
 }
 
 input ChangePasswordInput {
   newPassword: String!
   oldPassword: String!
-}
-
-input CreatePostInput {
-  content: String!
-  title: String!
 }
 
 """
@@ -38,75 +30,14 @@ input LoginInput {
 
 type Mutation {
   changePassword(data: ChangePasswordInput!): User!
-  createPost(data: CreatePostInput!): Post!
   login(data: LoginInput!): Auth!
   refreshToken(token: JWT!): Token!
   signup(data: SignupInput!): Auth!
   updateUser(data: UpdateUserInput!): User!
 }
 
-"""
-Possible directions in which to order a list of items when provided an `orderBy` argument.
-"""
-enum OrderDirection {
-  asc
-  desc
-}
-
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Post {
-  author: User
-  content: String
-
-  """Identifies the date and time when the object was created."""
-  createdAt: DateTime!
-  id: ID!
-  published: Boolean!
-  title: String!
-
-  """Identifies the date and time when the object was last updated."""
-  updatedAt: DateTime!
-}
-
-type PostConnection {
-  edges: [PostEdge!]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type PostEdge {
-  cursor: String!
-  node: Post!
-}
-
-input PostOrder {
-  direction: OrderDirection!
-  field: PostOrderField!
-}
-
-"""Properties by which post connections can be ordered."""
-enum PostOrderField {
-  content
-  createdAt
-  id
-  published
-  title
-  updatedAt
-}
-
 type Query {
-  hello(name: String!): String!
-  helloWorld: String!
   me: User!
-  post(postId: String!): Post!
-  publishedPosts(after: String, before: String, first: Int, last: Int, orderBy: PostOrder, query: String, skip: Int): PostConnection!
-  userPosts(userId: String!): [Post!]!
 }
 
 """User role"""
@@ -122,16 +53,9 @@ input SignupInput {
   password: String!
 }
 
-type Subscription {
-  postCreated: Post!
-}
-
 type Token {
-  """JWT access token"""
-  accessToken: JWT!
-
-  """JWT refresh token"""
-  refreshToken: JWT!
+  accessToken: String!
+  refreshToken: String!
 }
 
 input UpdateUserInput {
@@ -146,7 +70,6 @@ type User {
   firstname: String
   id: ID!
   lastname: String
-  posts: [Post!]
   role: Role!
 
   """Identifies the date and time when the object was last updated."""

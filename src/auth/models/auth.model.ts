@@ -1,8 +1,10 @@
 import { ObjectType } from '@nestjs/graphql';
-import { User } from 'src/users/models/user.model';
+import { UserModel } from 'src/users/entities/user.entity';
 import { Token } from './token.model';
+import { ApiProperty } from '@nestjs/swagger';
 
 @ObjectType()
 export class Auth extends Token {
-  user: User;
+  @ApiProperty({ type: () => UserModel })
+  user: Omit<UserModel, 'password'>;
 }
