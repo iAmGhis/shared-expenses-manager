@@ -3,13 +3,14 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ExpenseDetails } from '@prisma/client';
+import { Currency, ExpenseDetails } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { ExpenseEntity } from 'src/expenses/entities/expense.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardEntity } from './entities/board.entity';
-
+import { v4 as uid } from 'uuid';
+import axios from 'axios';
 @Injectable()
 export class BoardsService {
   constructor(private prisma: PrismaService) {}
@@ -136,7 +137,11 @@ export class BoardsService {
   }
 
   calculBestTransfers(debts: { [key: string]: number }) {
-    const transfers = {};
+    const transfers: {
+      sender: string;
+      recipient: string;
+      amount: number;
+    }[] = [];
 
     // Looping as long as all the debts haven't been settled
     while (Object.values(debts).some((debt) => debt > 0)) {
@@ -148,30 +153,146 @@ export class BoardsService {
         debts[a] > debts[b] ? a : b
       );
 
+      let amountTransfered;
       // If debt receiver is supposed to receive is less or equal than what the giver needs to reimburse
-      if (debts[receiver] <= -debts[giver]) {
-        const amountTransfered = debts[receiver];
-        transfers[giver] = {
-          ...transfers[giver],
-          [receiver]: amountTransfered,
-        };
-        debts[receiver] -= amountTransfered;
-        debts[giver] += amountTransfered;
-      }
-      // If debt receiver is supposed to receive more than what the giver needs to reimburse, we take giver amoutn
-      else {
-        const amountTransfered = -debts[giver];
-        transfers[giver] = {
-          ...transfers[giver],
-          [receiver]: amountTransfered,
-        };
-        debts[receiver] -= amountTransfered;
-        debts[giver] += amountTransfered;
-      }
+      if (debts[receiver] <= -debts[giver]) amountTransfered = debts[receiver];
+      // If debt receiver is supposed to receive more than what the giver needs to reimburse, we take giver amount
+      else amountTransfered = -debts[giver];
+
+      transfers.push({
+        sender: giver,
+        recipient: receiver,
+        amount: amountTransfered,
+      });
+
+      debts[receiver] -= amountTransfered;
+      debts[giver] += amountTransfered;
     }
     console.info('Transfers', transfers);
     console.info('Final Debts', debts);
 
     return transfers;
   }
+
+  async createWiseTransfer(
+    senderId: string,
+    recipientId: string,
+    boardCurrency: Currency,
+    amount: number
+  ) {
+    const [sender, recipient] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: {
+          id: senderId,
+        },
+      }),
+      this.prisma.user.findUnique({
+        where: {
+          id: recipientId,
+        },
+      }),
+    ]);
+
+    // TODO: check we get all needed Wise info on both profiles
+    const baseUrl = 'https://api.sandbox.transferwise.tech';
+
+    console.log('Obj', {
+      sourceCurrency: sender.mainCurrency,
+      targetCurrency: boardCurrency,
+      targetAmount: 10000,
+      profileId: sender.wiseProfileId,
+    });
+
+    const quote = await axios.post(
+      `${baseUrl}/v3/profiles/${sender.wiseProfileId}/quotes`,
+      {
+        sourceCurrency: sender.mainCurrency,
+        targetCurrency: boardCurrency,
+        targetAmount: 10000,
+        // profileId: sender.wiseProfileId,
+      },
+      { headers: { Authorization: `Bearer ${sender.wiseToken}` } }
+    );
+
+    console.log('Quote', quote);
+
+    // Recipient account
+    // TODO: list recipients and see if can find recipient
+    const allRecipients = await axios.get(
+      `${baseUrl}/v1/accounts?profile=${sender.wiseProfileId}&currency=${boardCurrency}`,
+      { headers: { Authorization: `Bearer ${sender.wiseToken}` } }
+    );
+    console.log('allRecipients', allRecipients);
+
+    let recipientWiseAccount = allRecipients.data.find(
+      (obj) => obj.details.email === recipient.email
+    );
+
+    // TODO: we don't have bank account of people
+    if (!recipientWiseAccount) {
+      // TODO: get required key first depending currencies / countries + validation regexp
+      // Link example: https://api.sandbox.transferwise.tech/v1/account-requirements?source=USD&target=EUR&sourceAmount=1000
+      recipientWiseAccount = await axios.post(
+        `${baseUrl}/v1/accounts`,
+        {
+          currency: boardCurrency,
+          type: 'swift_code',
+          profile: sender.wiseProfileId,
+          accountHolderName: `${recipient.firstname} ${recipient.lastname}`,
+          details: {
+            legalType: 'PRIVATE',
+            swiftCode: 'AGRIFRPPXXX',
+            accountNumber: 'FRXXXXXXXXXXXXXXXXXXXXXXXXX',
+            sortCode: 'EUR',
+            address: {
+              country: 'FR',
+              city: 'Paris',
+              firstline: '4 rue de la verrerie',
+              postCode: '75004',
+            },
+          },
+        },
+        { headers: { Authorization: `Bearer ${sender.wiseToken}` } }
+      );
+    }
+    recipientWiseAccount = recipientWiseAccount.data;
+
+    // Finally creating the transfer
+    // TODO: need a specific UUID and a transfers table to store data
+    const transferUid = uid();
+    const transfer = await this.prisma.transfer.create({
+      data: {
+        id: transferUid,
+        sender: { connect: { id: sender.id } },
+        recipient: { connect: { id: recipient.id } },
+        amount,
+        currency: boardCurrency,
+        status: 'created',
+      },
+    });
+
+    try {
+      const wiseTransfer = await axios.post(
+        `${baseUrl}/v1/transfers`,
+        {
+          targetAccount: recipientWiseAccount.id,
+          quoteUuid: quote.data.id,
+          customerTransactionId: transferUid,
+          details: {
+            reference: 'to my friend', // TODO:
+            transferPurpose: 'verification.transfers.purpose.pay.bills', // TODO:
+            sourceOfFunds: 'verification.source.of.funds.other', // TODO:
+          },
+        },
+        { headers: { Authorization: `Bearer ${sender.wiseToken}` } }
+      );
+      console.log('wiseTransfer', wiseTransfer.data);
+    } catch (err) {
+      console.log("Can't create a transfer");
+      console.error(err);
+    }
+
+    return transfer;
+  }
+  // TODO: suppose to found the transfer
 }

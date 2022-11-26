@@ -14,6 +14,6 @@ export class BoardEntity implements Board {
   title: string;
   @ApiProperty()
   authorId: string;
-  @ApiProperty()
+  @ApiProperty({ enum: Currency })
   currency: Currency;
 }

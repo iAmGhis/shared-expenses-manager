@@ -16,6 +16,11 @@ Table User {
   expenseDetails ExpenseDetails [not null]
   board Board [not null]
   paidBy Expense [not null]
+  wiseToken String
+  wiseProfileId String
+  mainCurrency Currency
+  transfersReceived Transfer [not null]
+  transfersSent Transfer [not null]
 }
 
 Table Board {
@@ -29,6 +34,7 @@ Table Board {
   currency Currency [not null]
   users User [not null]
   expenses Expense [not null]
+  Transfer Transfer [not null]
 }
 
 Table Expense {
@@ -55,6 +61,19 @@ Table ExpenseDetails {
   amount Int [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
+}
+
+Table Transfer {
+  id String [pk]
+  senderId String [not null]
+  sender User [not null]
+  recipientId String [not null]
+  recipient User [not null]
+  amount Int [not null]
+  currency Currency [not null]
+  status String [not null]
+  boardId String [not null]
+  board Board
 }
 
 Table participants {
@@ -88,3 +107,9 @@ Ref: Expense.paidById > User.id
 Ref: ExpenseDetails.expenseId > Expense.id [delete: Cascade]
 
 Ref: ExpenseDetails.paidForId > User.id
+
+Ref: Transfer.senderId > User.id
+
+Ref: Transfer.recipientId > User.id
+
+Ref: Transfer.boardId > Board.id

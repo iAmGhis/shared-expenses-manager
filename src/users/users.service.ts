@@ -45,4 +45,13 @@ export class UsersService {
       where: { id: userId },
     });
   }
+
+  async changeWiseToken(userId: string, token: string) {
+    return this.prisma.user.update({
+      data: {
+        wiseToken: token,
+      },
+      where: { id: userId },
+    });
+  }
 }

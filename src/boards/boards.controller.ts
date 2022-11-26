@@ -50,12 +50,6 @@ export class BoardsController {
     return this.boardsService.findOne(id, req.user.id);
   }
 
-  @Get(':id/debts')
-  async computeDebts(@Param('id') id: string) {
-    const expenses = await this.expensesService.findAllOneBoard(id, true);
-    return this.boardsService.computeDebts(expenses);
-  }
-
   @Patch(':id')
   @ApiOkResponse({ type: BoardEntity })
   update(
@@ -76,5 +70,39 @@ export class BoardsController {
   @ApiOkResponse()
   remove(@Req() req, @Param('id') id: string) {
     return this.boardsService.remove(id, req.user.id);
+  }
+
+  @Get(':id/debts')
+  async computeDebts(@Param('id') id: string) {
+    const expenses = await this.expensesService.findAllOneBoard(id, true);
+    return this.boardsService.computeDebts(expenses);
+  }
+
+  @Get(':id/transfers')
+  async getBestTransfers(@Param('id') id: string) {
+    const expenses = await this.expensesService.findAllOneBoard(id, true);
+    const debts = this.boardsService.computeDebts(expenses);
+
+    return this.boardsService.calculBestTransfers(debts);
+  }
+
+  @Post(':id/transfers')
+  async createTransfers(@Req() req, @Param('id') id: string) {
+    const board = await this.boardsService.findOne(id, req.user.id);
+    const expenses = await this.expensesService.findAllOneBoard(id, true);
+    const debts = this.boardsService.computeDebts(expenses);
+
+    const transfers = this.boardsService.calculBestTransfers(debts);
+
+    await Promise.all(
+      transfers.map((transfer) => {
+        return this.boardsService.createWiseTransfer(
+          transfer.sender,
+          transfer.recipient,
+          board.currency,
+          transfer.amount
+        );
+      })
+    );
   }
 }

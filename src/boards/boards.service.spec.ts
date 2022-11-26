@@ -28,14 +28,10 @@ describe('BoardsService', () => {
     -200 + 424 - 212 + 10128 - 4128, // 6012
     0 + 0 - 4000, // - 4000
   ];
-  const transfersRes = {
-    [usersId[0]]: {
-      [usersId[1]]: 2012,
-    },
-    [usersId[2]]: {
-      [usersId[1]]: 4000,
-    },
-  };
+  const transfersRes = [
+    { sender: usersId[2], recipient: usersId[1], amount: 4000 },
+    { sender: usersId[0], recipient: usersId[1], amount: 2012 },
+  ];
 
   const boardId = uid();
 

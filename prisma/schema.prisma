@@ -13,19 +13,24 @@ generator dbml {
 }
 
 model User {
-  id             String           @id @default(cuid())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  email          String           @unique
-  password       String
-  firstname      String?
-  lastname       String?
-  boards         Board[]          @relation("participants")
-  role           Role
-  expense        Expense[]
-  expenseDetails ExpenseDetails[]
-  board          Board[]
-  paidBy         Expense[]        @relation("paidBy")
+  id                String           @id @default(cuid())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  email             String           @unique
+  password          String
+  firstname         String?
+  lastname          String?
+  boards            Board[]          @relation("participants")
+  role              Role
+  expense           Expense[]
+  expenseDetails    ExpenseDetails[]
+  board             Board[]
+  paidBy            Expense[]        @relation("paidBy")
+  wiseToken         String?
+  wiseProfileId     String?
+  mainCurrency      Currency?
+  transfersReceived Transfer[]       @relation("recipient")
+  transfersSent     Transfer[]       @relation("sender")
 }
 
 enum Role {
@@ -34,16 +39,17 @@ enum Role {
 }
 
 model Board {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   published Boolean
   title     String
-  author    User?    @relation(fields: [authorId], references: [id])
+  author    User?      @relation(fields: [authorId], references: [id])
   authorId  String?
   currency  Currency
-  users     User[]   @relation("participants")
+  users     User[]     @relation("participants")
   expenses  Expense[]
+  Transfer  Transfer[]
 }
 
 enum Currency {
@@ -57,27 +63,40 @@ enum Currency {
 }
 
 model Expense {
-  id             String           @id @default(cuid())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  title          String
-  author         User?            @relation(fields: [authorId], references: [id])
-  authorId       String?
-  totalAmount    Int
-  breakdown      ExpenseDetails[]
-  board          Board?            @relation(fields: [boardId], references: [id])
-  boardId        String? 
-  paidBy         User              @relation(fields: [paidById], references: [id], name:"paidBy")
-  paidById       String
+  id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  title       String
+  author      User?            @relation(fields: [authorId], references: [id])
+  authorId    String?
+  totalAmount Int
+  breakdown   ExpenseDetails[]
+  board       Board?           @relation(fields: [boardId], references: [id])
+  boardId     String?
+  paidBy      User             @relation(fields: [paidById], references: [id], name: "paidBy")
+  paidById    String
 }
 
 model ExpenseDetails {
-  id        String           @id @default(cuid())
+  id        String   @id @default(cuid())
   expense   Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   expenseId String
-  paidForId    String
-  paidFor      User     @relation(fields: [paidForId], references: [id])
+  paidForId String
+  paidFor   User     @relation(fields: [paidForId], references: [id])
   amount    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Transfer {
+  id          String   @id @default(cuid())
+  senderId    String
+  sender      User     @relation(name: "sender", fields: [senderId], references: [id])
+  recipientId String
+  recipient   User     @relation(name: "recipient", fields: [recipientId], references: [id])
+  amount      Int
+  currency    Currency
+  status      String // Enum
+  boardId     String
+  board       Board?   @relation(fields: [boardId], references: [id])
 }

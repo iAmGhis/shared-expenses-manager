@@ -1,8 +1,17 @@
-import { Body, Controller, Get, Put, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Put,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { ChangeWiseTokenInput } from './dto/wise-token.input';
 import { UserModel } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -31,5 +40,13 @@ export class UserController {
       req.user.password,
       changePassword
     );
+  }
+
+  @Patch('me/wise-token')
+  async changeWiseToken(
+    @Request() req,
+    @Body() { token }: ChangeWiseTokenInput
+  ) {
+    return this.userService.changeWiseToken(req.user.id, token);
   }
 }
